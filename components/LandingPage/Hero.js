@@ -50,13 +50,12 @@ const Hero = () => {
 
           if (activeBus) {
             setBusData(activeBus);
-            // Dynamic estimate logic
             const speed = activeBus.Vehicle?.Position?.Speed || 0;
-            const estimate = speed > 5 ? 3 : 8; // Faster bus = closer
+            const estimate = speed > 5 ? 3 : 8; // Faster bus is closer
             setMinutesAway(estimate);
           }
         }
-
+        // no more hardcoded
         const stopLon = destinationPoint?.lon || -77.8605; 
         const stopLat = destinationPoint?.lat || 40.7970;
 
