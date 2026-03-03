@@ -12,12 +12,15 @@ const logoColor = '#032c58'
 const Navbar = () => {
   const { setUser } = useStateContext()
 
-  return (
+  return ( // changing out <logo> onClick= logout)
     <Nav>
-      <Logo onClick={() => logOut(setUser)} href="/"></Logo>
+      <Logo href="/"></Logo>
       <NavLinks>
+        <ButtonLink href="/schedulehub">Schedule Hub</ButtonLink>
+        <ButtonLink href="/routes">Routes</ButtonLink>
         <ButtonLink href="/auth/signup">Sign Up</ButtonLink>
         <ButtonLink href="/auth/login">Login</ButtonLink>
+        <Home></Home>
       </NavLinks>
     </Nav>
   );
@@ -26,6 +29,7 @@ const Navbar = () => {
 const Nav = styled.nav`
   display: flex;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
   height: 5rem;
 `;
@@ -38,19 +42,23 @@ const Logo = styled(Link)`
   background-size: cover;
 `;
 const NavLinks = styled.div`
-  width: 23rem;
-  padding-top: 1rem;
+  width: 20rem;
+  display: flex;
+  justify-content: flex-end;
 `;
 
 const ButtonLink = styled(Link)`
   text-transform: uppercase;
-  text-decoration: none;g
-  margin: 1rem;
+  text-decoration: none;
   font-family: "Helvetica";
+  height: 4rem;
+  width: 10rem;
+  text-align: center;
 
   color: white;
   background: ${logoColor};
   padding: 1rem;
+  margin: .25rem;
   border-radius: 0.25rem;
 `;
 

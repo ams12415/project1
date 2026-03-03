@@ -6,7 +6,7 @@ const Footer = () => {
     <FooterSection>
       <FooterContainer>
         <LeftContainer>
-          © {new Date().getFullYear()} CMPSC 263
+          © {new Date().getFullYear()} CMPSC 263 Project One - Aaron Silverio
         </LeftContainer>
         <CenterContainer>
           <Link href="#">Privacy Policy</Link> | <Link href="#">Terms of Service</Link>
@@ -22,7 +22,7 @@ const Footer = () => {
 };
 
 const FooterSection = styled.footer`
-
+  font-family: 'helvetica';
 `;
 
 const FooterContainer = styled.div`

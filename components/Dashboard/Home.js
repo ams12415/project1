@@ -7,9 +7,9 @@ import styled from 'styled-components';
 
 const Home = () => {
   return (
-    <Square href="/dashboard">
-      <IoIosBeaker  />
-    </Square>
+    <>
+      <Square href="./index"></Square>
+    </>
   );
 };
 // square is the button itself, as a link
@@ -17,7 +17,7 @@ const Square = styled(Link)`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 50px; // Adjust the size as needed
+  width: 500px; // Adjust the size as needed
   height: 50px; // Adjust the size as needed
   background-color: #33ff00; // Adjust the background color as needed
   color: white;
