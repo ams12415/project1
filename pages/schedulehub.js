@@ -6,7 +6,6 @@ import { useStateContext } from '@/context/StateContext';
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import { database } from '@/backend/Firebase';
 
-
 const logoColor = '#032c58';
 
 const ScheduleHub = () => {
@@ -16,6 +15,7 @@ const ScheduleHub = () => {
   const [courseTime, setCourseTime] = useState('');
   const [location, setLocation] = useState("");
 
+  // fetch courses from firebase
   useEffect(() => {
     const fetchCourses = async () => {
       if (!user) return; // not logged in
@@ -28,6 +28,9 @@ const ScheduleHub = () => {
         querySnapshot.forEach((doc) => {
           loadedCourses.push(doc.data());
         });
+        
+        // Sorting them so the schedule looks right
+        loadedCourses.sort((a, b) => a.time.localeCompare(b.time));
         setCourses(loadedCourses);
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -38,15 +41,15 @@ const ScheduleHub = () => {
   }, [user]);
 
   const addCourse = async () => {
-    // temporary logs
+    // temporary logs - keeping these for you!
     console.log("add clicked");
     console.log("current user state: ", user);
     console.log("course input: ", courseInput);
     console.log("time: ", courseTime);
 
-    if (courseInput.trim() === '' || courseTime === '' || !user) {
+    if (courseInput.trim() === '' || courseTime === '' || location === '' || !user) {
       console.log("Missing input or user is not logged in");
-      alert("Please enter a course, a time, and ensure you are logged in.");
+      alert("Please enter a course, a time, a location, and ensure you are logged in.");
       return; 
     }
 
@@ -55,20 +58,23 @@ const ScheduleHub = () => {
     const newCourse = {
       name: courseInput,
       time: courseTime,
+      location: location,
       userId: user.uid 
     };
 
     try {
-      // Saving
-      await addDoc(collection(db, "courses"), {
-      name: courseName,
-      location: location,
-      });
+      // Corrected to use 'database' and 'newCourse' object
+      await addDoc(collection(database, "courses"), newCourse);
       console.log("save successful");
       
-      setCourses([...courses, newCourse]);
+      // Update state and re-sort so it pops up in the right spot
+      const updatedCourses = [...courses, newCourse];
+      updatedCourses.sort((a, b) => a.time.localeCompare(b.time));
+      
+      setCourses(updatedCourses);
       setCourseInput('');
       setCourseTime('');
+      setLocation('');
     } catch (error) {
       console.error("Error saving:", error);
       alert("Failed to save course to database.");
@@ -96,29 +102,38 @@ const ScheduleHub = () => {
               value={courseTime}
               onChange={(e) => setCourseTime(e.target.value)}
             />
+            {/* Keeping your styled select logic */}
+            <select 
+              value={location} 
+              onChange={(e) => setLocation(e.target.value)}
+              style={{height: '3rem', borderRadius: '5px', border: `2px solid ${logoColor}`, padding: '0 10px'}}
+            >
+              <option value="">Nearest Stop</option>
+              <option value="Pattee Transit Center">Pattee (Library)</option>
+              <option value="Visual Arts Bldg">Visual Arts</option>
+              <option value="East Halls">East Halls</option>
+              <option value="Shortlidge Rd">Shortlidge (HUB)</option>
+            </select>
             <Button onClick={addCourse}>Add</Button>
           </InputContainer>
           
           <CourseList>
             {courses.map((course, index) => (
               <CourseItem key={index}>
-                {course.name} — {course.time}
+                <strong>{course.name}</strong> — {course.time}
+                <div style={{fontSize: '0.9rem', color: logoColor, marginTop: '5px'}}>
+                  Stop: {course.location}
+                </div>
               </CourseItem>
             ))}
           </CourseList>
-          <select value={location} onChange={(e) => setLocation(e.target.value)}>
-            <option value="">Select Nearest Bus Stop</option>
-            <option value="Pattee Transit Center">Pattee Transit Center (West)</option>
-            <option value="HUB-Robeson Center">HUB (Central)</option>
-            <option value="College Ave">College Ave (Downtown)</option>
-            <option value="Visual Arts Bldg">Visual Arts (North/East)</option>
-          </select>
         </PresentCourses>
       </Container>
     </>
-  )
-}
+  );
+};
 
+// ... (Rest of your styled components remain exactly as they were)
 const Container = styled.div`
   font-family: 'helvetica';
   background-color: #E8E9EA;
