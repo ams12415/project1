@@ -6,8 +6,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing coordinates" });
   }
 
-  const apiKey = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjRjNGVlMmE5YjY3MzQwMGM4MTFhY2ExYjFhNmJjNmIxIiwiaCI6Im11cm11cjY0In0="; 
-  
+  const apiKey = process.env.NEXT_PUBLIC_ORS_KEY;
   const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${start_lon},${start_lat}&end=${end_lon},${end_lat}`;
 
   try {
