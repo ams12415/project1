@@ -5,6 +5,15 @@ import { GiBusStop } from "react-icons/gi";
 import { BiTimer } from "react-icons/bi";
 import { useStateContext } from '@/context/StateContext';
 
+const COURSE_LOCATIONS = {
+  "CMPSC": "West Deck",
+  "CMPEN": "West Deck",
+  "MATH": "Visual Arts Bldg",
+  "ECON": "Forum Bldg",
+  "ENGL": "Willard Bldg",
+  "CHEM": "Shortlidge Rd"
+};
+
 const heroColor = "#E8E9EA";
 const logoColor = '#032c58'
 

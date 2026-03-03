@@ -6,6 +6,7 @@ import { useStateContext } from '@/context/StateContext';
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import { database } from '@/backend/Firebase';
 
+
 const logoColor = '#032c58';
 
 const ScheduleHub = () => {
@@ -13,6 +14,7 @@ const ScheduleHub = () => {
   const [courseInput, setCourseInput] = useState('');
   const [courses, setCourses] = useState([]);
   const [courseTime, setCourseTime] = useState('');
+  const [location, setLocation] = useState("");
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -58,7 +60,10 @@ const ScheduleHub = () => {
 
     try {
       // Saving
-      await addDoc(collection(database, "courses"), newCourse);
+      await addDoc(collection(db, "courses"), {
+      name: courseName,
+      location: location,
+      });
       console.log("save successful");
       
       setCourses([...courses, newCourse]);
@@ -101,7 +106,13 @@ const ScheduleHub = () => {
               </CourseItem>
             ))}
           </CourseList>
-
+          <select value={location} onChange={(e) => setLocation(e.target.value)}>
+            <option value="">Select Nearest Bus Stop</option>
+            <option value="Pattee Transit Center">Pattee Transit Center (West)</option>
+            <option value="HUB-Robeson Center">HUB (Central)</option>
+            <option value="College Ave">College Ave (Downtown)</option>
+            <option value="Visual Arts Bldg">Visual Arts (North/East)</option>
+          </select>
         </PresentCourses>
       </Container>
     </>
