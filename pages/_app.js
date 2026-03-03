@@ -15,8 +15,8 @@ export default function App({ Component, pageProps }) {
   return (
     <>
         <Head>
-          <title>MVP Starter</title>
-          <meta name='description' content='Put a description here about your app'/>
+          <title>WeAreONTIME</title>
+          <meta name='description' content='PSU transit app'/>
           <meta name='robots' content='index, follow'/>
           <link rel="apple-touch-icon" sizes="180x180" href="/favicon_package/apple-touch-icon.png"/>
           <link rel="icon" type="image/png" sizes="32x32" href="/favicon_package/favicon-32x32.png"/>

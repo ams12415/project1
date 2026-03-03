@@ -5,10 +5,7 @@ import Footer from "@/components/LandingPage/Footer"
 export default function Home() {
   return (
     <>
-        <Navbar/>
-        <Hero text={'WELCOME TO MY CLASS'} />
-        <Hero />
-        <Footer />
+      <Navbar/>
     </>
   )
 }

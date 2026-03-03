@@ -1,23 +1,25 @@
 import React from 'react';
 import Link  from 'next/link';
-import { IoMdHome } from 'react-icons/io'; // Importing a home icon from react-icons
+import { IoIosBeaker  } from 'react-icons/io'; // Importing a home icon from react-icons
 import styled from 'styled-components';
+
+// home button
 
 const Home = () => {
   return (
     <Square href="/dashboard">
-      <IoMdHome />
+      <IoIosBeaker  />
     </Square>
   );
 };
-
+// square is the button itself, as a link
 const Square = styled(Link)`
   display: flex;
   align-items: center;
   justify-content: center;
   width: 50px; // Adjust the size as needed
   height: 50px; // Adjust the size as needed
-  background-color: #007bff; // Adjust the background color as needed
+  background-color: #33ff00; // Adjust the background color as needed
   color: white;
   border-radius: 4px; // Adjust for square or rounded corners
   text-decoration: none;
