@@ -5,270 +5,242 @@ import { GiBusStop } from "react-icons/gi";
 import { BiTimer } from "react-icons/bi";
 import { useStateContext } from '@/context/StateContext';
 
-const COURSE_LOCATIONS = {
-  "CMPSC": "West Deck",
-  "CMPEN": "West Deck",
-  "MATH": "Visual Arts Bldg",
-  "ECON": "Forum Bldg",
-  "ENGL": "Willard Bldg",
-  "CHEM": "Shortlidge Rd"
+const heroColor = "#E8E9EA";
+const logoColor = '#032c58';
+const blueLoopColor = '#005596'; // Penn State Blue
+
+const STOP_MAP = {
+  "Pattee Transit Center": "Pattee Library",
+  "Visual Arts Bldg": "Visual Arts",
+  "East Halls": "Curtin Rd",
+  "Shortlidge Rd": "the HUB (Shortlidge Rd)"
 };
 
-const heroColor = "#E8E9EA";
-const logoColor = '#032c58'
+const STOP_COORDS = {
+  "Pattee Transit Center": { lat: 40.7982, lon: -77.8616 },
+  "Visual Arts Bldg": { lat: 40.7998, lon: -77.8600 },
+  "East Halls": { lat: 40.8005, lon: -77.8500 },
+  "Shortlidge Rd": { lat: 40.7970, lon: -77.8605 }
+};
 
 const Hero = () => {
-  const { user } = useStateContext();
+  const { user, courses } = useStateContext();
   const [busData, setBusData] = useState(null);
   const [minutesAway, setMinutesAway] = useState(null);
   const [walkingTime, setWalkingTime] = useState(null);
   const displayName = user?.email ? user.email.split('@')[0].toUpperCase() : "GUEST";
 
   useEffect(() => {
+    const startLon = -77.8616; 
+    const startLat = 40.7982; 
+    
+    const destinationPoint = (courses && courses.length > 0) 
+      ? STOP_COORDS[courses[0].location] 
+      : STOP_COORDS["Shortlidge Rd"];
+
     const fetchBusAndRoute = async () => {
       try {
-        // getting bus data
         const busResponse = await fetch("/api/bus");
         const busData = await busResponse.json();
 
         if (busData && busData.Entities && busData.Entities.length > 0) {
-          // getting some bus (temp for now)
           const activeBus = busData.Entities.find(
             (entity) => entity.Vehicle?.Trip?.RouteId === "BL" || entity.Vehicle?.Trip?.RouteId === "25"
           ) || busData.Entities[0]; 
 
           if (activeBus) {
             setBusData(activeBus);
-    
+            // Dynamic estimate logic
             const speed = activeBus.Vehicle?.Position?.Speed || 0;
-            const estimate = speed > 0 ? 5 : 10;
+            const estimate = speed > 5 ? 3 : 8; // Faster bus = closer
             setMinutesAway(estimate);
-          } else {
-             setMinutesAway("N/A");
           }
         }
 
-        // 2. walking time (hardcoded, temporary)
-        const startLon = -77.8616; 
-        const startLat = 40.7982; 
-        const stopLon = -77.8633; 
-        const stopLat = 40.7965; 
+        const stopLon = destinationPoint?.lon || -77.8605; 
+        const stopLat = destinationPoint?.lat || 40.7970;
 
         const routeResponse = await fetch(`/api/route?start_lon=${startLon}&start_lat=${startLat}&end_lon=${stopLon}&end_lat=${stopLat}`);
         const routeData = await routeResponse.json();
         
         if (routeData.features && routeData.features.length > 0) {
-           // convert from seconds to minuts
            const walkMins = Math.round(routeData.features[0].properties.summary.duration / 60);
            setWalkingTime(walkMins);
         }
-
-      } catch (err) {
-        console.error("Fetch error:", err);
-      }
+      } catch (err) { console.error(err); }
     };
 
     fetchBusAndRoute();
     const interval = setInterval(fetchBusAndRoute, 30000); 
-
     return () => clearInterval(interval);
-  }, []);
+  }, [courses]);
+
+  const busPosition = minutesAway ? Math.max(0, Math.min(90, (10 - minutesAway) * 10)) : 10;
 
   return (
     <Section>
       <WelcomeMessage>WELCOME, {displayName}</WelcomeMessage>
-      <BusArrivalIcon></BusArrivalIcon>
-      <BusArrivalIcon></BusArrivalIcon>
-      <BusArrivalTime>{minutesAway ? `${minutesAway} MIN. TO STOP` : "LOADING..."}</BusArrivalTime>
-      <Container>
-        <StyledBus/>
-        <ProgressBar/>
-        <StyledBusStop/>
-      </Container>
-      <RouteInfoText>BLUE LOOP to MATH 220</RouteInfoText>
+      
+      <StatusContainer>
+        <BiTimer size="3rem" color={logoColor} />
+        <BusArrivalTime>
+          {minutesAway ? `${minutesAway} MIN. TO STOP` : "LOCATING BUS..."}
+        </BusArrivalTime>
+      </StatusContainer>
+
+      <TrackingArea>
+        <StyledBus position={busPosition} />
+        <ProgressBar />
+        <StyledBusStop />
+      </TrackingArea>
+
+      <RouteInfoText>
+        {courses && courses.length > 0 
+          ? `BLUE LOOP to ${STOP_MAP[courses[0].location] || "Campus"}` 
+          : "BLUE LOOP to HUB"}
+      </RouteInfoText>
+
       <RouteLeaveTimesContainer>
-        <BoardTime>3:00 PM</BoardTime>
-        <TimeArrow></TimeArrow>
-        <ArriveTime>3:05 PM</ArriveTime>
+        <BoardTime>{(courses && courses.length > 0) ? courses[0].time : "3:00 PM"}</BoardTime>
+        <TimeArrow />
+        <ArriveTime>SUCCESS</ArriveTime>
       </RouteLeaveTimesContainer>
-      <RouteSubheadings>
-          <BoardSubHeading>BOARD</BoardSubHeading>
-          <ArriveSubHeading>ARRIVE</ArriveSubHeading>
-      </RouteSubheadings>
+
       <AdditionalInfoSection>
         <AdditionalInformation>
-          NEXT IN {minutesAway ? minutesAway : "..."} MIN OR WALK: {walkingTime ? walkingTime : "..."} MIN | NO CLOSURES
+          {walkingTime ? `WALK TO STOP: ${walkingTime} MIN` : "CALCULATING WALK..."} | NO CLOSURES
         </AdditionalInformation>
       </AdditionalInfoSection>
     </Section>
   );
 };
 
-const BusArrivalIcon = styled(BiTimer)`
-  display: flex;
-  width: 100%;
-  height: 5rem;
-  position: relative;
-  top: 16%;
-  justify-items: center;
-`
-
 const Section = styled.section`
-display: block;
-background-color: ${heroColor};
-width: 100%;
-height: 75vh;
+  background-color: ${heroColor};
+  width: 100%;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding-top: 2rem;
+`;
+
+const StatusContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
 const BusArrivalTime = styled.div`
-  font-size: 1rem;
-  font-family: 'helvetica';
-  text-align: center;
-  padding: 1rem;
+  font-family: 'Helvetica', sans-serif;
   font-weight: bold;
-  position: relative;
-  top:15%;
-  color: ${logoColor}
+  color: ${logoColor};
+  margin-top: 0.5rem;
 `;
 
+const TrackingArea = styled.div`
+  position: relative;
+  width: 80%;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem 0;
+`;
 
-// me using icons
 const StyledBus = styled(MdOutlineBusAlert)`
-  width: 25%;
-  height: 6rem;
+  font-size: 4rem;
+  color: ${blueLoopColor};
   position: absolute;
-  left: 6.5%;
-  top: 16rem;
+  bottom: 40px;
+  left: ${props => props.position}%;
+  transition: left 2s ease-in-out;
   z-index: 5;
-`
+`;
 
 const StyledBusStop = styled(GiBusStop)`
-  width: 50%;
-  height: 6rem;
-  position: relative;
-  top: 2rem;
-
-`
-
-// progress bar
-
-let loopColor = "red";
-
-const ProgressBar = styled.div`
-  width: 50%;
-  height: 2rem;
-  border-radius: 1rem;
-  background: repeating-linear-gradient(
-    45deg,
-    ${loopColor},
-    ${loopColor} 10px,
-    white 10px,
-    white 20px
-  );
-  position: relative;
-  top: 50%;
-  left: 20%
-  
-`
-
-const Container = styled.div`
-  display: flex;
-  height: 10rem;
-  width: 100%;
+  font-size: 4rem;
+  color: ${logoColor};
+  position: absolute;
+  right: 0;
+  bottom: 40px;
 `;
 
-// route stuff
+const ProgressBar = styled.div`
+  width: 100%;
+  height: 15px;
+  border-radius: 10px;
+  background: #ccc;
+  position: absolute;
+  bottom: 25px;
+  overflow: hidden;
+  
+  &:after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      45deg,
+      ${blueLoopColor},
+      ${blueLoopColor} 10px,
+      white 10px,
+      white 20px
+    );
+  }
+`;
 
 const RouteInfoText = styled.div`
-  text-align: center;
-  font-family: 'helvetica';
+  font-family: 'Helvetica', sans-serif;
   font-weight: bold;
-  font-size: 2rem;
-`
-
-const BoardTime = styled.div`
+  font-size: 1.8rem;
   color: ${logoColor};
-  width: 20%;
-  font-size: 2rem;
-  text-align: right;
-  margin-right: 1rem; 
-`
-const TimeArrow = styled.div`
-  background: repeating-linear-gradient(
-    45deg,
-    ${logoColor},
-    ${logoColor} 10px,
-    white 10px,
-    white 20px
-  );
-  border-radius: 1rem;
-  width: 60%;
-`
-
-const ArriveTime = styled.div`
-  font-size: 2rem;
-  width: 20%;
-  font-color: ${logoColor};
-  margin-left: 1rem;
-`
+`;
 
 const RouteLeaveTimesContainer = styled.div`
   display: flex;
+  align-items: center;
+  width: 80%;
+  justify-content: space-between;
   font-weight: bold;
-`
-const RouteSubheadings = styled.div`
-  display: flex;
-  font-weight: bold;
-  font-size: 0.8rem;
-  font-family: 'helvetica';
-  text-align: center;
-`
+`;
 
-const BoardSubHeading = styled.div`
-  width: 50%
-`
-const ArriveSubHeading = styled.div`
-  width: 50%
-`
+const BoardTime = styled.div`
+  font-size: 1.5rem;
+  color: ${logoColor};
+`;
+
+const TimeArrow = styled.div`
+  flex-grow: 1;
+  height: 10px;
+  margin: 0 1rem;
+  background: ${logoColor};
+  border-radius: 5px;
+`;
+
+const ArriveTime = styled.div`
+  font-size: 1.5rem;
+  color: ${logoColor};
+`;
 
 const AdditionalInfoSection = styled.div`
-  display: flex;
-  justify-content: center;
-  border-top: black .1rem solid;
-`
+  width: 100%;
+  border-top: 2px solid #ccc;
+  padding-top: 1rem;
+  text-align: center;
+`;
 
 const AdditionalInformation = styled.div`
-  color: black;
-  font-size: 2rem;
-`
-
-const HeroTextColumn = styled.div`
+  font-size: 1.2rem;
+  font-weight: bold;
 `;
 
-const Header = styled.h1`
-`;
-
-const Highlight = styled.span`
-`;
-
-const SubHeader = styled.h2`
-
-`;
-
-const SubheaderAndStarsColumn = styled.div`
-
-`;
-
-const CTAButton = styled.button`
-
-`;
 const WelcomeMessage = styled.div`
-  font-size: 1.5rem;
-  font-family: 'helvetica';
+  font-size: 1.2rem;
+  font-family: 'Helvetica', sans-serif;
   font-weight: bold;
   color: ${logoColor};
-  text-align: center;
-  padding-top: 2rem;
   letter-spacing: 2px;
 `;
 
